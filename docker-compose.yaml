@@ -1,0 +1,42 @@
+version: '3.6'
+services:
+  redis:
+    image: "${CI_REGISTRY}/mabo_group/base_application/redis:latest"   
+    restart: always
+    command: redis-server --appendonly yes --stop-writes-on-bgsave-error no --maxmemory 1073741824 --maxmemory-policy  volatile-ttl --maxmemory-samples 5 --slowlog-log-slower-than 10000 --databases 16
+    volumes:
+       - ${CI_PROJECT_DIR}/redis/data:/data
+    environment: 
+       TZ: 'Asia/Shanghai'
+    networks: 
+        back: 
+            aliases: 
+                - redis
+     
+  ziyan:
+     image: "${CI_REGISTRY}/mabo/doctopus_ziyan"   
+     restart: always
+     volumes:
+       - ${CI_PROJECT_DIR}/ziyan/logs:/usr/mabo/ziyan/logs
+     # devices: 
+       # - /dev/ttyUSB0:/dev/ttyUSB0 
+     depends_on: 
+       - redis
+     networks: 
+        - back
+
+  chitu:
+     image: "${CI_REGISTRY}/mabo/doctopus_chitu"   
+     restart: always
+     volumes:
+       - ${CI_PROJECT_DIR}/chitu/logs:/usr/mabo/chitu/logs
+       - ${CI_PROJECT_DIR}/chitu/conf/conf.toml:/usr/mabo/chitu/conf/conf.toml
+     networks: 
+        - back
+     depends_on: 
+       - redis
+     # command: "ls -l"
+
+networks: 
+    back:
+    
